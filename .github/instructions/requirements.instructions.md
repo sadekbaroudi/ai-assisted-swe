@@ -1,0 +1,751 @@
+# Requirements document
+
+## Context and Objectives
+
+### Business Context
+This is a web application that allows a group of friends to organize a recurring potluck. The application should facilitate event planning, including host selection, date voting, and dish sharing, media sharing, an activity feed, while ensuring privacy and ease of use for the group members.
+
+### Technical Objectives
+Build a secure, scalable, and user-friendly application that meets the functional and non-functional requirements. Ensure the application adheres to modern development standards and best practices.
+
+## Technical Specifications
+
+### Functional Requirements
+
+1. **Platform Foundation** !!platform_foundation
+  - **Backend** !!platform_backend
+    - [ ] Laravel 10+ project initialized with `/api/v1` route group & REST resource conventions
+    - [ ] MySQL 8 connection + base migrations: users, groups, events, polls (skeleton columns only)
+    - [ ] Layered architecture directories (Controllers, Services, Repositories, DTOs, Policies, Middleware)
+    - [ ] Central exception handler returning uniform JSON envelope { data, meta, errors }
+    - [ ] JWT auth bootstrap: stub controllers for login, refresh, revoke (no full logic yet)
+    - [ ] Core middleware registered: auth:api, rate limiting, request ID, force JSON, CORS
+    - [ ] Logging stub: Monolog channel, env-driven LOG_PATH / LOG_LEVEL, directory auto-create
+    - [ ] OpenAPI stub: `/api/docs` route serving placeholder spec & script hook for future generation
+    - [ ] Health & readiness endpoints: `/health` (liveness), `/ready` (DB + queue check)
+    - [ ] `.env.example` file with required base variables (DB, JWT, LOG_PATH, APP_URL)
+  - **Frontend** !!platform_frontend
+    - [ ] Vite-based React TypeScript scaffold created under `frontend/`
+    - [ ] Base folder structure: components/, hooks/, pages/, api/, types/, state/, theme/
+    - [ ] Typed API client wrapper (axios or fetch) with baseURL, JSON handling, 401 refresh interceptor stub
+    - [ ] Routing shell (React Router) with guarded route component + public/private layout separation
+    - [ ] Global state store (Zustand or Context) for auth session + notification count placeholder
+    - [ ] Shared TS models: User, Group, Event, PollSkeleton (aligned to backend DTO shapes)
+    - [ ] Initial theming system (Material Design leaning) + responsive nav bar placeholder
+    - [ ] Jest + React Testing Library config + sample component test + sample hook test
+    - [ ] `.env.example` file with required base variables
+
+2. **Authentication**
+  - [ ] Implement comprehensive authentication and user account management
+    - [ ] **Basic Authentication** !!auth_basic
+      - [ ] Email/password user registration with validation
+      - [ ] Secure login with email and password
+      - [ ] Password hashing using PHP's password_hash function
+      - [ ] JWT token-based authentication with bearer tokens
+      - [ ] Automatic token refresh with refresh tokens (30-day expiration)
+      - [ ] User profile management (update name, email, password)
+      - [ ] Logout functionality with token cleanup
+    - [ ] **Session and Token Management** !!session_token_management
+      - [ ] JWT access tokens with 24-hour expiration
+      - [ ] Refresh tokens with 30-day expiration
+      - [ ] Automatic token refresh when expired
+      - [ ] Token validation middleware for protected routes
+      - [ ] Graceful handling of invalid/expired tokens
+      - [ ] Client-side token storage in localStorage
+      - [ ] Force logout on authentication failures
+    - [ ] **User Account Information** !!user_account_information
+      - [ ] User profile data (name, email, creation date)
+      - [ ] Account type tracking (email vs OAuth)
+      - [ ] Email verification status tracking.
+      - [ ] OAuth provider and ID fields for future social login
+      - [ ] User should not be able to change their email address after account creation.
+    - [ ] **User Dietary Restrictions and Preferences** !!user_dietary_restrictions_preferences
+      - [ ] **Dietary Restriction Management**
+        - [ ] User profile section for managing dietary restrictions
+        - [ ] Predefined common dietary restrictions (vegetarian, vegan, gluten-free, dairy-free, nut-free, kosher, halal, keto, paleo, etc.)
+        - [ ] Multiple dietary restriction selection support
+        - [ ] Easy add/remove functionality for dietary restrictions
+      - [ ] **Dietary Preference Details**
+        - [ ] Severity level indication (mild preference vs strict requirement)
+      - [ ] **Event Dietary Restriction Display**
+        - [ ] Dietary restriction bubbles/badges on event Dish section of the Event page so that users know what dishes are safe for bring
+    - [ ] **Social Authentication (OAuth)** !!auth_oauth_social_authentication
+      - [ ] Google OAuth integration using a Google auth library (e.g. League\OAuth2\Client\Provider\Google)
+      - [ ] Automatic account linking for existing email addresses.
+      - [ ] Profile data synchronization from OAuth providers
+      - [ ] Avatar image retrieval from OAuth providers
+      - [ ] Graceful fallback for OAuth failures
+    - [ ] **Password Management** !!auth_password_management
+      - [ ] Password reset functionality via email (only applies for non-OAuth accounts)
+      - [ ] Secure password reset tokens with expiration (only applies for non-OAuth accounts)
+      - [ ] Password strength requirements and validation (only applies for non-OAuth accounts)
+      - [ ] Password change confirmation via current password (only applies for non-OAuth accounts)
+    - [ ] **Email Verification** !!auth_email_verification
+      - [ ] Required email verification process for new registrations. Use an environment variable to track if in a dev environment or not, and if dev, skip the email verification process
+      - [ ] Verification email sending with secure tokens
+      - [ ] Re-send verification email functionality
+      - [ ] Verification status display in user profile
+    - [ ] **Account Security** !!auth_account_security
+      - [ ] Rate limiting for login attempts and registration
+      - [ ] Account lockout after multiple failed login attempts
+      - [ ] Two-factor authentication (2FA) support
+      - [ ] Security logging for authentication events
+      - [ ] Device/browser tracking for security monitoring
+    - [ ] **User Experience** !!auth_user_experience
+      - [ ] Account recovery options for locked accounts
+      - [ ] Clear error messages for authentication failures
+      - [ ] Progressive enhancement for OAuth login buttons
+      - [ ] Loading states for authentication operations
+      - [ ] Secure logout from all devices functionality
+
+3.**Host Selection**
+  - [ ] Automatically assign current user as host on event creation, but allow for manual host selection
+  - [ ] UI for rotating or manually selecting host for next event
+
+4.**Date Selection & Polling**
+  - [ ] Implement comprehensive date selection and polling system for events
+    - [ ] **Poll Creation and Management**
+      - [ ] Host can create date polls with multiple date/time options
+      - [ ] Poll titles and optional descriptions for each date option
+      - [ ] Host can edit poll options and details before finalization
+      - [ ] Host can add or remove date options during editing
+      - [ ] System preserves existing votes when editing unchanged options
+      - [ ] Poll editing automatically removes votes only for deleted options
+      - [ ] Visual poll editor with datetime picker for precise scheduling
+      - [ ] Poll creation validation to ensure at least one valid date option
+    - [ ] **Voting System**
+      - [ ] Users can vote for multiple preferred dates within a poll
+      - [ ] Toggle-based voting (click to select/deselect options)
+      - [ ] Real-time vote recording and immediate feedback
+      - [ ] Visual indication of user's current votes on poll options
+      - [ ] Prevention of voting on finalized polls
+      - [ ] Vote persistence across browser sessions
+      - [ ] Automatic vote validation and error handling
+    - [ ] **Poll Results and Analytics**
+      - [ ] Real-time vote counting and result display
+      - [ ] Visual poll results with pie charts showing vote distribution
+      - [ ] Detailed vote breakdown showing who voted for each option
+      - [ ] Summary of users who haven't responded to the poll
+      - [ ] Vote percentage calculations and visual representation
+      - [ ] Voter names displayed for transparency (when applicable)
+    - [ ] **Poll Finalization**
+      - [ ] Host can select any poll option as the final event date
+      - [ ] Host can choose winning option automatically or manually select
+      - [ ] Poll finalization locks the poll and sets event date
+      - [ ] Host can unfinalize polls to make changes if needed
+      - [ ] Event status automatically updates when date is finalized
+      - [ ] Clear visual indicators for finalized vs active polls
+      - [ ] Confirmation dialogs for poll finalization actions
+    - [ ] **Direct Date Setting**
+      - [ ] Host can set event date directly without creating a poll
+      - [ ] Date/time picker with validation for future dates only
+      - [ ] Host can clear or modify directly set dates
+      - [ ] Option to switch between poll-based and direct date setting
+      - [ ] Visual calendar interface for intuitive date selection
+      - [ ] Time zone handling and proper date formatting
+    - [ ] **User Experience and Interface**
+      - [ ] Responsive poll interface that works on all devices
+      - [ ] Clear visual distinction between voted and unvoted options
+      - [ ] Clickable poll status chips for easy navigation
+      - [ ] Intuitive poll editing interface with add/remove options
+      - [ ] Loading states and error handling for all poll operations
+      - [ ] Toast notifications for successful poll actions
+      - [ ] Poll tab navigation with badge indicators for active polls
+    - [ ] **Poll State Management**
+      - [ ] Event status integration with poll finalization
+      - [ ] Automatic event status updates (planning/confirmed) based on date setting
+      - [ ] Poll data persistence and real-time synchronization
+      - [ ] Prevention of duplicate polls per event
+      - [ ] Poll deletion and cleanup when events are cancelled
+    - [ ] **Notification Integration**
+      - [ ] Notifications when polls are created
+      - [ ] Notifications when polls are finalized
+      - [ ] Notifications when event dates are changed
+
+5.**Event Management**
+  - [ ] Implement comprehensive event lifecycle management system
+    - [ ] **Event Creation and Setup**
+      - [ ] Users can create events with title, description, and group association
+      - [ ] Event creation requires group membership validation
+      - [ ] Host is automatically assigned to event creator
+      - [ ] Optional location setting during event creation using Maps API
+      - [ ] Events are automatically set to "planning" status on creation
+      - [ ] Real-time event validation and error handling
+      - [ ] Support for rich text descriptions and detailed planning
+    - [ ] **Event Information Management**
+      - [ ] Host can edit event title and description
+      - [ ] Dynamic event status calculation based on date and location
+      - [ ] Event metadata display (creation date, last updated, etc.)
+      - [ ] Group association and member access control
+      - [ ] Host identification and permission management
+      - [ ] Event permalink and sharing capabilities
+    - [ ] **Event Status and Lifecycle**
+      - [ ] Automatic status progression (planning → confirmed → completed)
+      - [ ] Planning status when missing date or location requirements
+      - [ ] Confirmed status when both date and location are set
+      - [ ] Completed status for events with past dates
+      - [ ] Cancelled status with preservation of event history
+      - [ ] Visual status indicators and progress tracking
+      - [ ] Host ability to cancel events with notifications
+      - [ ] Administrative bulk status update functionality
+    - [ ] **Location Management**
+      - [ ] Google Maps API integration for location selection
+      - [ ] Location picker with search and selection interface
+      - [ ] Storage of location name, address, coordinates, and place ID
+      - [ ] Clickable location links that open in Google Maps
+      - [ ] Host-only location editing and management
+      - [ ] Location clearing and modification capabilities
+      - [ ] Fallback location display for development environments
+      - [ ] Location requirement validation for event confirmation
+    - [ ] **RSVP and Attendance Management**
+      - [ ] User RSVP system with three status options (Attending, Not Attending, Tentative)
+      - [ ] Real-time RSVP status tracking and updates
+      - [ ] RSVP summary display with count statistics
+      - [ ] Host visibility control for RSVP member lists
+      - [ ] Individual RSVP status viewing for hosts and group admins
+      - [ ] RSVP privacy settings configurable per event
+      - [ ] Group member RSVP overview and management
+      - [ ] RSVP change tracking and notification system
+    - [ ] **Dish Coordination System**
+      - [ ] Categorized dish planning (appetizers, mains, desserts)
+      - [ ] User attribution for all contributed dishes
+      - [ ] Dish description and serving size information
+      - [ ] Visual dish organization by category
+      - [ ] Group member dish contribution tracking
+      - [ ] Easy dish addition and management interface
+      - [ ] Dish planning overview and coordination tools
+      - [ ] Ability to edit dish details after creation
+    - [ ] **Discussion and Communication**
+      - [ ] Event-specific comment system and discussion threads
+      - [ ] Real-time comment posting with user attribution
+      - [ ] Comment timestamps and chronological ordering
+      - [ ] User avatar display in comment threads
+      - [ ] Rich text comment support and formatting
+      - [ ] Comment submission with Enter key support
+      - [ ] Comment notification system for event participants
+    - [ ] **Media Sharing and Gallery**
+      - [ ] Multiple file upload support (images and videos)
+      - [ ] Drag-and-drop file upload interface
+      - [ ] Upload progress indicators and status feedback
+      - [ ] File size and type validation with error handling
+      - [ ] PHP upload limit detection and user feedback
+      - [ ] Media gallery with thumbnail display
+      - [ ] Batch download functionality for all event media
+      - [ ] User attribution for uploaded media
+      - [ ] Media file management and organization
+      - [ ] Grid-based thumbnail gallery with lightbox viewer
+      - [ ] Slideshow functionality for media browsing
+    - [ ] **Date and Time Management**
+      - [ ] Integration with date polling system for collaborative scheduling
+      - [ ] Direct date setting by hosts without polling
+      - [ ] Date and time picker with validation
+      - [ ] Date clearing and modification capabilities
+      - [ ] Time zone handling and proper formatting
+      - [ ] Event date finalization and confirmation
+      - [ ] Date change notifications to group members
+    - [ ] **Event Access Control and Security**
+      - [ ] Group membership-based event visibility
+      - [ ] Host-only editing and management permissions
+      - [ ] Group admin additional privileges for event management
+      - [ ] Event viewing authorization checks
+      - [ ] RSVP access control based on group membership
+      - [ ] Comment and media upload authorization
+      - [ ] Secure event data access and API endpoints
+    - [ ] **Event Listing and Discovery**
+      - [ ] Event listing with sorting by creation date (newest first)
+      - [ ] Group-based event filtering and organization
+      - [ ] Event status display and visual indicators
+      - [ ] Event search and discovery within groups
+      - [ ] Upcoming vs completed event categorization
+      - [ ] Event summary cards with key information
+      - [ ] Group-specific event feeds and listings
+    - [ ] **User Experience and Interface**
+      - [ ] Responsive event management interface for all devices
+      - [ ] Material Design-based UI with consistent styling
+      - [ ] Tabbed event interface (Details, Discussion, Media, RSVP, Polls)
+      - [ ] Loading states and error handling throughout
+      - [ ] Toast notifications for all event actions
+      - [ ] Intuitive navigation and clear action buttons
+      - [ ] Real-time data synchronization and updates
+      - [ ] Keyboard shortcuts and accessibility features
+    - [ ] **Advanced Event Features**
+      - [ ] Custom event fields and metadata
+    - [ ] **Notification Integration**
+      - [ ] Implement "Notification Types and Categories" section below
+
+6. **Group Management**
+  - [ ] Implement groups for segmented potluck circles
+    - [ ] **Group Creation and Management**
+      - [ ] Users can create a new potluck group with a name and description
+      - [ ] Group creators can edit the group name and description
+      - [ ] Group creators can delete their groups (with confirmation)
+      - [ ] Users can view a list of all groups they belong to
+      - [ ] Users can see group details including member count and recent activity
+      - [ ] The group host should be able to cancel the event. The event should still show up, but the status should be changed to cancelled. This should trigger a notification.
+      - [ ] When the date is confirmed, the event should be set to "confirmed" status. If the date is cleared, the event should be set to "planning" status. If the date is not set, the event should be set back to "planning" status. This should trigger a notification.
+      - [ ] If the event date is in on a previous day, the status should be set to "completed". This does not need to trigger a notification.
+    - [ ] **Group Membership**
+      - [ ] Users can see who is in each group they belong to
+      - [ ] Group members can view other members' profiles within the group context
+      - [ ] Users can leave a group they belong to (except group creator)
+      - [ ] System tracks when users joined each group
+    - [ ] **Event-Group Association**
+      - [ ] When creating an event, users can select which group it belongs to
+      - [ ] Events are only visible to members of the associated group
+      - [ ] Users can only create events for groups they belong to
+      - [ ] Event listings show which group each event belongs to
+      - [ ] Users can filter events by group
+      - [ ] Event listings should show the group name, both in the list and in the event details
+    - [ ] **Group Navigation and Discovery**
+      - [ ] Users have a dedicated "Groups" section in the main navigation
+      - [ ] Each group has its own page showing events, members, and activity
+    - [ ] **Privacy and Access Control**
+      - [ ] Only group members can see events belonging to that group
+      - [ ] Only group members can participate in group events (vote, comment, add dishes)
+      - [ ] Non-members cannot see group details, members, or events
+      - [ ] Group creators have additional permissions (edit group, manage events)
+    - [ ] **Invite/Join Group Functionality**
+      - [ ] Group creators can generate shareable invite links for their groups
+      - [ ] Users can join groups using invite links
+      - [ ] Group creators can invite users by email address
+      - [ ] Users receive notifications when invited to join a group
+      - [ ] Users can accept or decline group invitations
+      - [ ] Invite links can be set to expire after a certain time period
+      - [ ] Group creators can disable/revoke invite links
+      - [ ] **Group Join Request System**
+        - [ ] **Backend Implementation**
+          - [ ] Database model for storing join requests
+          - [ ] API endpoint for users to request to join a group
+          - [ ] API endpoint for group admins to list pending join requests
+          - [ ] API endpoint for group admins to approve join requests
+          - [ ] API endpoint for group admins to deny join requests
+          - [ ] Join request status tracking (pending, approved, denied)
+          - [ ] Validation to prevent duplicate join requests from same user
+          - [ ] Automatic cleanup of approved/denied requests
+          - [ ] Group admin permission validation for request management
+          - [ ] Notification system integration for join request events
+          - [ ] Join request data includes user info, group info, and timestamps
+        - [ ] **Frontend Implementation**
+          - [ ] Group discovery interface for non-members to browse public groups
+          - [ ] "Request to Join" button on group pages for non-members
+          - [ ] Join request confirmation dialog with optional message
+          - [ ] API integration for submitting join requests (useRequestToJoinGroup hook exists)
+          - [ ] Group admin interface for managing join requests
+          - [ ] Join request list with pending requests and user information
+          - [ ] Approve/deny buttons with confirmation dialogs
+          - [ ] Join request notification integration in notification center
+          - [ ] Visual indicators for groups with pending join requests
+          - [ ] Join request status display for users who have submitted requests
+          - [ ] Error handling and loading states for all join request operations
+          - [ ] Toast notifications for successful join request actions
+          - [ ] Responsive design for join request interfaces on all devices
+      - [ ] System prevents users from joining the same group multiple times
+    - [ ] **Group Admin Roles and Permissions**
+      - [ ] Group creators automatically become group administrators
+      - [ ] Group admins can promote other members to admin status
+      - [ ] Group admins can demote other admins (except the original creator)
+      - [ ] Group admins can remove members from the group
+      - [ ] Group admins can modify group settings and information
+      - [ ] Group admins can manage group invitations and join requests
+      - [ ] Only group admins can delete events within their group
+      - [ ] Group admins can pin important events or announcements
+      - [ ] System shows clear visual indicators for admin users
+      - [ ] Group admins can view member activity and engagement metrics
+      - [ ] Original group creator cannot be removed and retains ultimate control
+      - [ ] Group creators can transfer ownership to another group member
+    - [ ] **Group Privacy and Visibility Settings**
+      - [ ] **Private Groups (Default)**
+        - [ ] Private groups are completely hidden from non-members
+        - [ ] Non-members cannot see group name, description, or any basic information
+        - [ ] Private groups do not appear in any discovery interfaces or search results
+        - [ ] Non-members cannot access group pages or request to join
+        - [ ] All group events, members, and activity are strictly limited to group members
+        - [ ] Private groups can only be joined through direct invitation links or email invitations
+        - [ ] Group admins can convert private groups to public (with confirmation dialog)
+        - [ ] Privacy setting is clearly indicated in group management interface
+      - [ ] **Public Groups**
+        - [ ] Public groups appear in group discovery and search interfaces
+        - [ ] Non-members can view basic group information (name, description, member count)
+        - [ ] Non-members can see group creation date and admin information
+        - [ ] Public groups have a dedicated public page accessible to all users
+        - [ ] Non-members can request to join public groups via "Request to Join" button
+        - [ ] **Restricted Public Group Content:**
+          - [ ] Non-members cannot see group events (past, present, or future)
+          - [ ] Non-members cannot see group member lists or details
+          - [ ] Non-members cannot see event discussions, media, or any event details
+          - [ ] Non-members cannot see group activity feed or recent actions
+          - [ ] Non-members cannot participate in polls, comments, or any group activities
+        - [ ] Group admins can convert public groups to private (with confirmation dialog)
+        - [ ] Public setting is clearly indicated with visual badges in UI
+      - [ ] **Privacy Setting Management**
+        - [ ] Only group creators/admins can modify privacy settings
+        - [ ] Privacy changes require confirmation dialogs with impact warnings
+        - [ ] System logs privacy setting changes for audit purposes
+        - [ ] Privacy setting changes trigger notifications to all group members
+        - [ ] API endpoints respect privacy settings for all data access
+        - [ ] Frontend interfaces conditionally render based on privacy and membership status
+        - [ ] Clear documentation in group settings about privacy implications
+      - [ ] **Group Discovery Interface**
+        - [ ] Public groups discovery page with search and filtering
+        - [ ] Search by group name and description keywords
+        - [ ] Filter by creation date, member count, and activity level
+        - [ ] Grid/list view of public groups with preview cards
+        - [ ] Preview cards show: group name, description, member count, join button
+        - [ ] "Request to Join" functionality integrated into discovery interface
+        - [ ] Pagination for large numbers of public groups
+        - [ ] No access to private groups through discovery interface
+    - [ ] **User Experience**
+      - [ ] Confirmation dialogs prevent accidental group deletion or leaving
+      - [ ] Invitation process is simple and user-friendly
+      - [ ] Admin functions are clearly separated from regular member functions
+      - [ ] Privacy settings are clearly explained with tooltips and help text
+      - [ ] Visual indicators distinguish between private and public groups throughout UI
+
+7. **Dashboard/Home Page - Social Activity Feed**
+  - [ ] Implement a comprehensive social activity feed as the main landing page after login
+    - [ ] **Core Feed Architecture**
+      - [ ] Full-page activity feed with infinite scroll functionality
+      - [ ] Real-time activity updates with live refresh capabilities
+      - [ ] Activity deduplication
+    - [ ] **Activity Post Types**
+      - [ ] **Event Activities**
+        - [ ] Event creation posts with rich event preview cards, while keeping them compact with no redundant information
+        - [ ] Event date change updates
+        - [ ] Event location updates
+        - [ ] Event status updates
+        - [ ] Event cancellation and completion announcements
+        - [ ] RSVP status changes (attending, not attending, tentative)
+      - [ ] **Social Interactions**
+        - [ ] Comment threads on activities with reply functionality
+      - [ ] **Media and Content Sharing**
+        - [ ] Photo and video uploads with gallery previews
+        - [ ] Media carousels for multiple file uploads
+        - [ ] Video thumbnails and inline playback
+        - [ ] Media reactions
+        - [ ] !!media_comments Media comments on specific photos
+      - [ ] **Group and Community Activities**
+        - [ ] Group membership change announcements for new members (Should be in the format "User X joined group Y" or "User X left group Y")
+      - [ ] **Dish and Food Coordination**
+        - [ ] Dish contribution posts with category and description
+      - [ ] **Poll and Decision Making**
+        - [ ] Poll creation activity
+    - [ ] **Rich Content Display**
+      - [ ] **Visual Post Design**
+        - [ ] Card-based layout with rich media previews
+        - [ ] User avatars and profile pictures throughout feed
+        - [ ] Timestamp display with relative time (e.g., "2 hours ago")
+    - [ ] **Feed Personalization and Filtering**
+      - [ ] **Filter and Sort Options**
+        - [ ] Filter by activity type (events, comments, media, polls, etc.)
+        - [ ] Filter by specific groups or events, using typeahead search
+        - [ ] Sort by reverse chronological order
+    - [ ] **Social Interaction Features**
+      - [ ] **Reaction System**
+        - [ ] Multiple reaction types (like, love, excited, hungry, sad, fire, 100, and other useful or common reactions) for: activities, comments, and media.
+          - [ ] All reaction types for Activities and comments under those activities.
+          - [ ] All reaction types for Comments
+          - [ ] All reaction types for Event Media
+        - [ ] Reaction count display and user lists
+        - [ ] Reaction notifications for content creators
+      - [ ] **Reaction System User Interface**
+        - [ ] General reaction button shows popover with all reactions
+        - [ ] Existing reactions show to the left of the general reaction button
+        - [ ] Existing reactions should have a thicker black border if you also reacted with that reaction
+        - [ ] Existing reactions should have a thinner gray border if you have not reacted with that reaction
+        - [ ] Clicking an existing reaction should add if you haven't reacted with it, or remove it if you have reacted with it
+        - [ ] Hovering over a reaction should show a tooltip with the list of people who submitted that reaction
+      - [ ] **Comment System**
+        - [ ] Comment replies
+        - [ ] Comment editing and deletion capabilities, editing should have an indicator that the comment has been edited.
+        - [ ] Comment reactions
+        - [ ] Real-time comment updates and notifications
+        - [ ] @mentions and tagging of group members in comments, including notifications to mentioned users both email and in-app
+    - [ ] **Mobile-First Design and UX**
+      - [ ] **Touch-Optimized Interface**
+        - [ ] Pull-to-refresh functionality with visual feedback
+        - [ ] Smooth infinite scroll with loading indicators
+        - [ ] Touch-friendly buttons and interaction zones
+      - [ ] **Responsive Layout**
+        - [ ] Adaptive card layout for different screen sizes
+        - [ ] Optimized typography and spacing for mobile reading
+        - [ ] Tablet landscape and portrait mode optimization
+      - [ ] **Performance Optimization**
+        - [ ] Lazy loading for images and media content
+        - [ ] Progressive image loading with blur-up effect
+        - [ ] Efficient scroll handling and memory management
+    - [ ] **Real-Time Features**
+      - [ ] **Live Updates**
+        - [ ] Live comment updates and reactions
+        - [ ] Online status indicators for active users
+        - [ ] "Someone is typing" indicators for comments
+
+8. **Notification System**
+  - [ ] **Core Notification Architecture**
+    - [ ] **Notification Types and Categories**
+      - [ ] Event-related notifications (creation, updates, cancellation, date changes, location addition / changes, status changes)
+      - [ ] Group-related notifications (invitations, membership changes, new members)
+      - [ ] Poll-related notifications (poll creation, finalization, results)
+      - [ ] RSVP notifications (attendance changes)
+      - [ ] Comment notifications (new comments on events user is attending)
+      - [ ] Media notifications (photo/video uploads to event galleries)
+      - [ ] Dish coordination notifications (dish additions or changes)
+      - [ ] Reminder notifications (event approaching, RSVP deadlines)
+      - [ ] Event completion and follow-up notifications (e.g., "Event completed, thank you for attending!", reminder to upload photos and videos)
+      - [ ] Activity digest notifications. Provide user setting for frequency (immediate/hourly/weekly/daily summaries). If the user selects anything besides immediate, we can avoid sending notifications for every single activity, and instead send a summary of activities that happened in the last hour/day/week. The email job queue should respect this setting.
+    - [ ] **Notification Delivery Channels**
+      - [ ] In-app notifications with real-time updates
+      - [ ] Email notifications with HTML templates
+    - [ ] **Notification Storage and Persistence**
+      - [ ] Database storage for all notification records
+      - [ ] User-specific notification queues and history
+      - [ ] Notification metadata (read/unread status, timestamps, priority)
+      - [ ] Soft deletion for notification cleanup
+    - [ ] Notification links
+      - [ ] Each notification should have a link to the relevant page or action
+      - [ ] Notifications should be clickable and navigate to the relevant content. If the notification is about an event, it should navigate to the event page. If it's about a group, it should navigate to the group page. If it's about a poll, it should navigate to the poll page. If it's about a comment, it should navigate to the comment section of the event.
+      - [ ] If it's difficult or not possible to navigate to the relevant content, the notification should contain enough context to allow the user to completely understand the notification without needing to navigate anywhere.
+  - [ ] **User Preference Management**
+    - [ ] **Granular Notification Controls**
+      - [ ] Per-category notification preferences (event, group, poll, etc.)
+      - [ ] Per-delivery-channel preferences (in-app, email)
+      - [ ] Global notification enable/disable toggle
+      - [ ] Individual notification type controls within categories
+    - [ ] **Preference Storage and Management**
+      - [ ] User notification preference table with defaults
+      - [ ] Real-time preference updates without page refresh
+      - [ ] Preference validation and fallback mechanisms
+  - [ ] **In-App Notification System**
+    - [ ] **Real-Time Notifications**
+      - [ ] Live notification updates using appropriate technology
+      - [ ] Toast/popup notifications for immediate actions
+      - [ ] Notification badge counts in navigation
+      - [ ] Sound notifications for important events
+    - [ ] **Notification Center Interface**
+      - [ ] Dedicated notifications page with full history
+      - [ ] Mark individual notifications as read/unread
+      - [ ] Mark all notifications as read functionality
+      - [ ] Notification filtering by category and date
+      - [ ] Notification search and sorting capabilities
+    - [ ] **Notification Display and UX**
+      - [ ] Clear, actionable notification messages
+      - [ ] Clickable notifications that navigate to relevant content
+      - [ ] Rich notification content with images and formatting
+      - [ ] Notification grouping for similar events
+      - [ ] Progressive notification loading for performance
+      - [ ] Smart notification prioritization and ordering
+  - [ ] **Email Notification System**
+    - [ ] **Email Infrastructure**
+      - [ ] SMTP configuration and email service integration
+      - [ ] HTML email templates with responsive design
+      - [ ] Asynchronous email sending with queue management
+    - [ ] **Email Content and Formatting**
+      - [ ] Personalized email content with user names and context
+      - [ ] Event details and action buttons in emails
+      - [ ] Digest email template for multiple notifications
+      - [ ] Email branding and consistent visual design
+    - [ ] **Email Delivery Optimization**
+      - [ ] Batched email sending for performance
+      - [ ] Email throttling and rate limiting
+      - [ ] Email queue management and monitoring
+  - [ ] **Advanced Notification Features**
+    - [ ] **Smart Notification Logic**
+      - [ ] Notification deduplication and merging
+      - [ ] Contextual notification timing (not during events)
+      - [ ] User activity-based notification frequency adjustment
+      - [ ] Notification escalation for important missed events
+    - [ ] **Integration and Automation**
+      - [ ] Third-party calendar integration for reminders
+  - [ ] **Notification State Management**
+    - [ ] **Frontend State Synchronization**
+      - [ ] Real-time notification state updates across browser tabs
+      - [ ] Persistent notification state in local storage
+      - [ ] Optimistic UI updates for immediate feedback
+      - [ ] Error handling and state recovery mechanisms
+    - [ ] **Backend Notification Processing**
+      - [ ] Asynchronous notification creation and delivery
+      - [ ] Notification queue processing with job scheduling
+      - [ ] Failed notification retry logic with exponential backoff
+      - [ ] Notification archival and cleanup processes
+  - [ ] **User Experience and Accessibility**
+    - [ ] **Notification UX Design**
+      - [ ] Clear visual hierarchy and notification importance
+      - [ ] Consistent notification styling across the application
+      - [ ] Mobile-responsive notification interfaces
+      - [ ] Loading states and skeleton screens for notifications
+  - [ ] **Performance and Scalability**
+    - [ ] **Notification System Optimization**
+      - [ ] Database indexing for notification queries
+      - [ ] Caching strategies for notification data
+      - [ ] Pagination for large notification lists
+      - [ ] Background processing for notification generation
+
+9. **Calendar Export and "Add to Calendar" Links**
+  - [ ] **ICS File Generation**
+    - [ ] Install and configure ICS generation library (e.g., spatie/icalendar-generator)
+    - [ ] Create ICS file generator service for individual events
+    - [ ] Generate ICS files with event title, date/time, location, and description
+    - [ ] Include group name and host information in event details
+    - [ ] Implement proper ICS file naming and download headers
+  - [ ] **Simple Calendar Export Integration**
+    - [ ] Add "Add to Calendar" button on event detail pages (should be grayed out if the date or location is not set, and should show a toast notification when clicked)
+    - [ ] Include ICS in event emails as an attachment (should not be included if the date or location is not set)
+    - [ ] Add calendar export to event creation success pages
+  - [ ] **Frontend Calendar Export UI**
+    - [ ] Create simple "Add to Calendar" button with Material Design styling
+    - [ ] Add loading state for ICS file generation and download
+    - [ ] Show success feedback when ICS file is downloaded
+
+10. **User Experience and UI**
+  - [ ] Reformat the UI into nice looking tables with a modern design and clean CSS. Lean towards Google's Material Designprinciples
+  - [ ] Add a persistent link to "My Account" and "Logout" in the top right corner of the UI
+
+11. **Observability and Logging**
+  - [ ] **Core Logging Infrastructure**
+    - [ ] **Application Logging Framework**
+      - [ ] Monolog logging library integration with PSR-3 LoggerInterface
+      - [ ] Configurable log paths via environment variables (LOG_PATH)
+      - [ ] Configurable log levels via environment variables (LOG_LEVEL)
+      - [ ] Automatic log directory creation with proper permissions
+      - [ ] StreamHandler for file-based logging output
+      - [ ] Application logger dependency injection throughout the system
+      - [ ] Structured logging with contextual information and metadata
+    - [ ] **Log File Management**
+      - [ ] Application logs excluded from version control (.gitignore)
+      - [ ] Default log location with environment override capability
+      - [ ] Log directory structure (storage/logs/app.log)
+      - [ ] Log file rotation and size management
+      - [ ] Log file compression and archival policies
+      - [ ] Automated log cleanup and retention policies
+    - [ ] **Environment-Based Configuration**
+      - [ ] Development vs production logging configuration
+      - [ ] Debug mode logging with detailed stack traces
+      - [ ] Environment variable-driven log settings
+      - [ ] Dynamic log level adjustment without restart
+      - [ ] Environment-specific log format configuration
+  - [ ] **Error Logging and Tracking**
+    - [ ] **Application Error Logging**
+      - [ ] Global error middleware with comprehensive error capture
+      - [ ] Exception logging with full stack traces and context
+      - [ ] Request context logging (method, URI, headers)
+      - [ ] Controller-level error logging with error_log() function
+      - [ ] Database query failure logging
+      - [ ] Authentication failure logging in middleware
+      - [ ] Error response formatting with appropriate status codes
+    - [ ] **Advanced Error Tracking**
+      - [ ] Error categorization and tagging system
+  - [ ] **Security Monitoring and Audit Logging**
+    - [ ] **Security Event Logging**
+      - [ ] Authentication attempt logging (success and failure)
+      - [ ] Authorization failure and access control violation logging
+      - [ ] Suspicious activity pattern detection and logging
+      - [ ] User account changes and privilege escalation logging
+      - [ ] Data access and modification audit trails
+      - [ ] File upload and media access security logging
+  - [ ] **Request and Response Logging**
+    - [ ] **HTTP Request/Response Tracking**
+      - [ ] Comprehensive request logging with headers and body
+      - [ ] Response time and status code tracking
+      - [ ] User agent and client information logging
+      - [ ] Request correlation ID generation and tracking
+      - [ ] Sensitive data masking in logs (passwords, tokens)
+    - [ ] **Database Operation Logging**
+      - [ ] SQL query logging with execution time
+      - [ ] Database connection and transaction logging
+      - [ ] Data modification audit trails
+  - [ ] **Development and Debugging Tools**
+    - [ ] Debug mode enhanced logging with trace information
+    - [ ] Log search and analysis capabilities
+    - [ ] Performance profiling and bottleneck identification tools
+  - [ ] **Observability Best Practices**
+    - [ ] **Structured Logging Standards**
+      - [ ] Consistent log format and schema across all components
+      - [ ] Standardized log levels and severity classification
+      - [ ] Contextual metadata inclusion (user ID, session ID, request ID)
+      - [ ] JSON-formatted logs for machine readability
+
+12. **Testing & Documentation**
+  - [ ] Serve Swagger/OpenAPI spec and Swagger UI
+  - [ ] Expand unit and integration test coverage
+  - [ ] Add tests for all API endpoints
+  - [ ] Write `README.md` with setup, configuration, and usage instructions
+  - [ ] Set up CI pipeline (tests, linting, coverage reports)
+
+13. **Development Environment**
+  - [ ] Create a single installation script that will execute all the steps required to install the application. Make it an interactive walkthrough for steps that require user intervention (e.g. database install, providing passwords, etc). Try to automate it as much as possible. If there is a step that requires user intervention, provide the commands and/or instructions to the user
+  - [ ] Create a installation script to cleanup the application. This should remove all of the files that were created by the installation script, and remove the database
+  - [ ] Replace the installation steps from the README.md with a link to the installation script
+
+14. **CI/CD and Dev Environment**
+  - [ ] Set up a CI/CD pipeline that builds the application, installs it, and runs all tests (unit, integration, and e2e). The pipeline should be able to run on a local machine, and on github actions. This pipeline should leverage the same scripts that can be used in every possible environment, mostly with the intent of avoiding code duplication. This should support:
+    - [ ] Local dev environment
+    - [ ] Docker containers
+    - [ ] Github Actions CI runs
+  - [ ] Set up a Dockerfile and docker-compose file for the environment such that one could run a CI, dev, staging, and production environment.
+    - [ ] Use .env.example configs already exist in the backend directory. The environments should use those instead of duplicating the configuration
+    - [ ] The docker-compose should spin up all of the services (frontend, backend, database)
+    - [ ] The dev version should mount the local filesystem so that a developer can edit the files and see and test the results immediately
+    - [ ] Use the appropriate versions of PHP, MySQL, and Node.js as specified in the requirements
+  - [ ] Create a dev.sh that has a the commands: up, down, logs, db, help. Note that the dev.sh should use #!/bin/bash
+    - [ ] These commands should leverage the docker-compose
+    - [ ] The up command will spin up the environment in containers
+    - [ ] The down command will take down the existing containers (if they are running)
+    - [ ] The logs command will tail the logs from all 3 containers and the application log (which has the path specified in the .env configuration).
+    - [ ] The db command will connect to the database and select the potluck database for querying.
+    - [ ] The help command just lists the commands. If dev.sh is run with no arguments, it should default to help.
+  - [ ] In addition to the above, let's make sure we have vscode dev container support
+
+15. **Non-Functional & DevOps**
+  - [ ] Configure environment-specific settings and secrets management
+  - [ ] Performance tuning and caching strategies
+  - [ ] Monitoring and logging enhancements
+
+### Non-Functional Requirements
+
+- **Performance constraints:** Ensure low latency and fast response times for all user interactions.  
+- **Scalability:** Design the application to handle an increasing number of users and events.  
+- **Reliability:** Ensure fault tolerance and high availability.  
+- **Security:** Implement secure authentication and data protection mechanisms.  
+- **Observability:** Instrument application logging (including SQL errors), monitoring, and tracing. Logs should be configurable via `.env` and excluded via `.gitignore`.  
+- **Dev Environment:** Provide Docker and docker‐compose configurations for dev, staging, and production. Include a `dev.sh` helper (up/down/logs/db/help) and VSCode devcontainer support.
+
+## Architectural Guidelines
+
+- **Architecture Style**
+  - Use a monolithic architecture for simplicity or a microservices architecture if scalability demands it.
+  - Clearly define responsibilities for authentication, event management, and data storage.
+  - Use REST APIs for communication between the backend and frontend.
+
+- **Distributed Architecture**
+  - If applicable, ensure data consistency and implement failure handling mechanisms like retries or circuit breakers.
+
+## Development Standards
+
+- **Coding Standards:** Follow PHP 8.3 and React.js coding conventions and style guides.  
+- **Code Reviews:** Implement a peer review process to ensure code quality and adherence to standards.  
+- **Documentation:**  
+  - Provide inline documentation.  
+  - Provide external API documentation (e.g., Swagger/OpenAPI).  
+
+- **.gitignore:**  
+  - Exclude sensitive files (environment files, configs, etc.).  
+  - Exclude compiled/build artifacts (npm install, composer files, etc.).  
+
+## Additional Instructions
+
+- Use PHP 8.3 for the backend and MySQL 8 for data storage.  
+- Develop the frontend using React.js.  
+- Ensure the implementation is purely Object-Oriented.  
+- Leverage well-established open-source libraries (Node.js v18.9.1 or earlier).  
+- Provide a `README.md` covering:
+  - Application overview and features  
+  - Environment configuration  
+  - Setup and run instructions  
+- Update `README.md` whenever new features are added.  
+- Create a `.gitignore` to exclude:
+  - Environment files  
+  - Logs  
+  - Build artifacts
+  - User file uploads
+  - Composer libraries
+  - Node modules
+  - IDE specific files (e.g., `.vscode`, `.idea`)
